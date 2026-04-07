@@ -15,8 +15,8 @@ def get_ffmpeg_path():
 def select_file():
     print("Opening file dialog... Please select a video file.")
     root = tk.Tk()
-    root.attributes('-topmost', True) # Bring to front
-    root.withdraw() # Hide the main window
+    root.attributes('-topmost', True)
+    root.withdraw()
     
     file_path = filedialog.askopenfilename(
         title="Select a Video File",
@@ -101,9 +101,9 @@ def main():
     # Build ffmpeg command 
     command = [
         ffmpeg_exe,
-        '-y',              # Overwrite without asking
-        '-i', input_file,  # Input file
-        output_path        # Output file
+        '-y',        
+        '-i', input_file,
+        output_path
     ]
     
     try:
