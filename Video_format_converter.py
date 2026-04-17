@@ -2,6 +2,7 @@ import os
 import subprocess
 import tkinter as tk
 from tkinter import filedialog
+import re
 
 try:
     import imageio_ffmpeg
@@ -11,6 +12,20 @@ except ImportError:
 
 def get_ffmpeg_path():
     return imageio_ffmpeg.get_ffmpeg_exe()
+
+def get_video_framerate(input_file, ffmpeg_exe):
+    command = [ffmpeg_exe, '-i', input_file]
+    try:
+        # ffmpeg outputs metadata to stderr
+        result = subprocess.run(command, stderr=subprocess.PIPE, text=True, errors='ignore')
+        output = result.stderr
+        match = re.search(r'(\d+(?:\.\d+)?)\s+fps', output)
+        if match:
+            return match.group(1)
+    except Exception:
+        pass
+    return "Unknown"
+
 #Selected file window popup
 def select_file():
     print("Opening file dialog... Please select a video file.")
@@ -39,12 +54,17 @@ def main():
     filename = os.path.basename(input_file)
     name_without_ext, ext = os.path.splitext(filename)
     
+    ffmpeg_exe = get_ffmpeg_path()
+    current_fps = get_video_framerate(input_file, ffmpeg_exe)
+    
     print("\n--- File Analysis ---")
     print(f"Selected File: {filename}")
     print(f"File Type/Format: {ext.upper().replace('.', '')} ({ext})")
+    print(f"Current Frame Rate: {current_fps} fps")
     
     # options for format conversion
     formats = {
+        '0': (ext, ext.upper().replace('.', '')),
         '1': ('.mp4', 'MP4'),
         '2': ('.m4p', 'MP4'),
         '3': ('.m4v', 'MP4'),
@@ -57,6 +77,7 @@ def main():
     }
     
     print("\n--- Select Output Format ---")
+    print("  0. Keep original format")
     print("MP4 Group:")
     print("  1. .mp4")
     print("  2. .m4p")
@@ -70,13 +91,40 @@ def main():
     print("  8. .wmv (Windows Media Video)")
     print("  9. .flv (Flash Video)")
     
-    choice = input("\nEnter the number of your choice (1-9): ").strip()
+    choice = input("\nEnter the number of your choice (0-9): ").strip()
     
     if choice not in formats:
         print("Invalid choice. Exiting program.")
         return
         
     target_ext, format_name = formats[choice]
+    
+    print("\n--- Select Frame Rate ---")
+    print(f"  0. Keep original frame rate ({current_fps} fps)")
+    print("  1. 24 fps (Cinematic)")
+    print("  2. 30 fps (Standard)")
+    print("  3. 60 fps (Smooth)")
+    print("  4. 120 fps (High)")
+    print("  5. Custom frame rate")
+    
+    fps_choice = input("\nEnter the number of your choice (0-5): ").strip()
+    target_fps = None
+    
+    fps_options = {
+        '1': '24',
+        '2': '30',
+        '3': '60',
+        '4': '120'
+    }
+    
+    if fps_choice == '5':
+        custom_fps = input("Enter custom frame rate (e.g. 144): ").strip()
+        if custom_fps.replace('.', '', 1).isdigit():
+            target_fps = custom_fps
+        else:
+            print("Invalid fps format. Keeping original frame rate.")
+    elif fps_choice in fps_options:
+        target_fps = fps_options[fps_choice]
     
     # save to Converted Video Folder with converted format name
     # requirement: "save the converted file into Converted Video Folder"
@@ -88,7 +136,11 @@ def main():
         print(f"\nCreated directory: {output_dir}")
         
     # name convention: name of the file before converted + name of format that converted to
-    output_filename = f"{name_without_ext}_{format_name}{target_ext}"
+    if target_fps:
+        output_filename = f"{name_without_ext}_{format_name}_{target_fps}fps{target_ext}"
+    else:
+        output_filename = f"{name_without_ext}_{format_name}{target_ext}"
+        
     output_path = os.path.join(output_dir, output_filename)
     
     print(f"\nInitializing conversion...")
@@ -96,15 +148,17 @@ def main():
     print(f"To:   {output_path}")
     print("This might take a while depending on the video size and format...")
     
-    ffmpeg_exe = get_ffmpeg_path()
-    
     # Build ffmpeg command 
     command = [
         ffmpeg_exe,
         '-y',        
-        '-i', input_file,
-        output_path
+        '-i', input_file
     ]
+    
+    if target_fps:
+        command.extend(['-r', target_fps])
+        
+    command.append(output_path)
     
     try:
         # Run ffmpeg, wait for completion
