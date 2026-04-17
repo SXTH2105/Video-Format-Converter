@@ -1,42 +1,58 @@
 # 🎬 Video Format Converter
 
-A Python desktop application that converts video files between popular formats using a file picker GUI and FFmpeg under the hood — no command-line knowledge required.
+A Python desktop application that converts video files between popular formats **and lets you control the frame rate** — using a GUI file picker and FFmpeg under the hood. No command-line knowledge required.
 
 ---
 
 ## 📋 Overview
 
-This tool lets you select any video file through a graphical file dialog, choose a target format from a menu of 9 options, and automatically convert and save the output to a dedicated `Converted Video/` folder. It uses `imageio_ffmpeg` to bundle FFmpeg, so no manual FFmpeg installation is needed.
+This tool lets you select any video file through a graphical file dialog, analyze its current format and frame rate, choose a target format and FPS, then automatically convert and save the output to a dedicated `Converted Video/` folder. It uses `imageio_ffmpeg` to bundle FFmpeg, so no manual FFmpeg installation is needed.
 
 ---
 
 ## ✨ Features
 
 - 🖱️ **GUI file picker** — browse and select your video file visually via Tkinter
-- 🎞️ **9 output format options** across MP4, MOV, MKV, AVI, WMV, and FLV groups
+- 🔍 **File analysis** — displays the selected file's name, format, and **detected frame rate** before converting
+- 🎞️ **10 output format options** across MP4, MOV, MKV, AVI, WMV, and FLV groups
+- 🔁 **Keep original format** — option `0` lets you re-encode without changing the container
+- 🎛️ **Frame rate control** — choose from presets (24, 30, 60, 120 fps) or enter a **custom FPS**
+- 🏷️ **Smart file naming** — output files are named as `originalname_FORMAT_FPSfps.ext`
 - 📂 **Auto-saves** converted files to a `Converted Video/` folder
-- 🏷️ **Smart file naming** — output files are named as `originalname_FORMAT.ext`
 - ⚡ **Bundled FFmpeg** via `imageio_ffmpeg` — no external FFmpeg installation required
-- 🔍 **File analysis** — displays the selected file's name and current format before conversion
 
 ---
 
-## 🎞️ Supported Formats
+## 🎞️ Supported Output Formats
 
 | Group | Extensions |
-|---|---|
-| MP4 | `.mp4`, `.m4p`, `.m4v` |
-| MOV | `.mov`, `.qt` |
+|-------|------------|
+| MP4   | `.mp4`, `.m4p`, `.m4v` |
+| MOV   | `.mov`, `.qt` |
 | Other | `.mkv`, `.avi`, `.wmv`, `.flv` |
+
+---
+
+## 🎛️ Frame Rate Presets
+
+| Option | FPS | Use Case |
+|--------|-----|----------|
+| 0 | Keep original | No change |
+| 1 | 24 fps | Cinematic look |
+| 2 | 30 fps | Standard video |
+| 3 | 60 fps | Smooth motion |
+| 4 | 120 fps | High frame rate |
+| 5 | Custom | Enter any value (e.g. 144) |
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Python 3**
-- **Tkinter** — for the file picker dialog
+- **Tkinter** — for the GUI file picker dialog
 - **imageio_ffmpeg** — for bundled FFmpeg binary
-- **subprocess** — to run the FFmpeg conversion command
+- **subprocess** — to run FFmpeg and detect frame rate from metadata
+- **re** — to parse FPS from FFmpeg's stderr output
 - **os** — for file path and directory management
 
 ---
@@ -50,8 +66,6 @@ Install the required library:
 ```bash
 pip install imageio_ffmpeg
 ```
-
-> `moviepy` is also listed as a companion install but is not required for core functionality.
 
 ### Installation
 
@@ -72,11 +86,14 @@ python Video_format_converter.py
 
 ## 📖 How It Works
 
-1. A file dialog window opens — select your video file (supports `.mp4`, `.mkv`, `.avi`, `.mov`, `.wmv`, `.flv`, `.m4p`, `.m4v`, `.qt`).
-2. The app displays the selected file's name and detected format.
-3. A numbered menu presents 9 output format options to choose from.
-4. FFmpeg performs the conversion in the background.
-5. The converted file is saved to the `Converted Video/` folder in the project directory, named as `originalname_FORMAT.ext`.
+1. A file dialog opens — select your video file.
+2. The app displays the file's name, detected format, and **current frame rate**.
+3. Choose an output format from the menu (0–9), including option `0` to keep the original.
+4. Choose a target frame rate (0–5), including a custom FPS option.
+5. FFmpeg runs the conversion with the specified format and FPS settings.
+6. The converted file is saved to the `Converted Video/` folder, named as:
+   - `originalname_FORMAT_FPSfps.ext` (if FPS was changed)
+   - `originalname_FORMAT.ext` (if original FPS was kept)
 
 ---
 
@@ -84,9 +101,9 @@ python Video_format_converter.py
 
 ```
 Converted Video/
-├── myvideo_MP4.mp4
+├── myvideo_MP4_60fps.mp4
 ├── myvideo_MKV.mkv
-└── clip_AVI.avi
+└── clip_AVI_30fps.avi
 ```
 
 ---
@@ -102,10 +119,26 @@ Video-Format-Converter/
 
 ---
 
+## 📝 Changelog
+
+### v2.0.0
+- ➕ Added real-time **frame rate detection** from video metadata
+- ➕ Added **frame rate selection menu** with presets (24, 30, 60, 120 fps)
+- ➕ Added **custom FPS input** option
+- ➕ Added **option 0** to keep the original format without re-encoding to a new container
+- ✏️ Updated output filename convention to include FPS when changed
+- ✏️ Updated format menu numbering from (1–9) to (0–9)
+
+### v1.0.0
+- 🎉 Initial release with format conversion and GUI file picker
+
+---
+
 ## ⚠️ Notes
 
 - The `Converted Video/` folder is created automatically if it doesn't exist.
-- Conversion time depends on the size and format of the input video.
+- Conversion time depends on the size, format, and frame rate of the input video.
+- Frame rate is detected by parsing FFmpeg's stderr metadata output using regex.
 - If `imageio_ffmpeg` is not installed, the program will exit with an installation prompt.
 
 ---
@@ -114,7 +147,7 @@ Video-Format-Converter/
 
 - Add a progress bar during conversion
 - Support batch conversion of multiple files at once
-- Allow users to set custom output quality or resolution
+- Allow custom output resolution or quality settings
 - Add audio-only extraction (MP3, AAC)
 - Build a full GUI to replace the CLI menu
 
