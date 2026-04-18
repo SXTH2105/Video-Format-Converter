@@ -1,23 +1,25 @@
 # 🎬 Video Format Converter
 
-A Python desktop application that converts video files between popular formats **and lets you control the frame rate** — using a GUI file picker and FFmpeg under the hood. No command-line knowledge required.
+A Python desktop application that converts video files between popular formats **and lets you control the frame rate** — using a full graphical user interface (GUI) and FFmpeg under the hood. No command-line knowledge required.
 
 ---
 
 ## 📋 Overview
 
-This tool lets you select any video file through a graphical file dialog, analyze its current format and frame rate, choose a target format and FPS, then automatically convert and save the output to a dedicated `Converted Video/` folder. It uses `imageio_ffmpeg` to bundle FFmpeg, so no manual FFmpeg installation is needed.
+This tool lets you select any video file and convert it seamlessly via an interactive GUI built with CustomTkinter. The interface allows you to view the selected file's format and frame rate, choose a target format and FPS, then automatically convert and save the output to a dedicated `Converted Video/` folder. It uses `imageio_ffmpeg` to bundle FFmpeg, so no manual FFmpeg installation is needed.
 
 ---
 
 ## ✨ Features
 
-- 🖱️ **GUI file picker** — browse and select your video file visually via Tkinter
+- 🖥️ **Full Modern GUI** — dark-mode ready graphical interface using CustomTkinter
+- 🖱️ **File picker** — browse and select your video file visually
 - 🔍 **File analysis** — displays the selected file's name, format, and **detected frame rate** before converting
-- 🎞️ **10 output format options** across MP4, MOV, MKV, AVI, WMV, and FLV groups
-- 🔁 **Keep original format** — option `0` lets you re-encode without changing the container
+- 🎞️ **Multiple output format options** across MP4, MOV, MKV, AVI, WMV, and FLV groups
+- 🔁 **Keep original format** — option to re-encode without changing the container
 - 🎛️ **Frame rate control** — choose from presets (24, 30, 60, 120 fps) or enter a **custom FPS**
 - 🏷️ **Smart file naming** — output files are named as `originalname_FORMAT_FPSfps.ext`
+- ⏳ **Background processing** — UI remains fully responsive during video conversion with active progress feedback
 - 📂 **Auto-saves** converted files to a `Converted Video/` folder
 - ⚡ **Bundled FFmpeg** via `imageio_ffmpeg` — no external FFmpeg installation required
 
@@ -49,8 +51,10 @@ This tool lets you select any video file through a graphical file dialog, analyz
 ## 🛠️ Tech Stack
 
 - **Python 3**
-- **Tkinter** — for the GUI file picker dialog
+- **CustomTkinter** — for the modern GUI and window components
+- **Tkinter** — for the file picker dialog and message boxes
 - **imageio_ffmpeg** — for bundled FFmpeg binary
+- **threading** — to ensure UI responsivness during processing
 - **subprocess** — to run FFmpeg and detect frame rate from metadata
 - **re** — to parse FPS from FFmpeg's stderr output
 - **os** — for file path and directory management
@@ -61,10 +65,10 @@ This tool lets you select any video file through a graphical file dialog, analyz
 
 ### Prerequisites
 
-Install the required library:
+Install the required libraries:
 
 ```bash
-pip install imageio_ffmpeg
+pip install imageio_ffmpeg customtkinter
 ```
 
 ### Installation
@@ -86,12 +90,13 @@ python Video_format_converter.py
 
 ## 📖 How It Works
 
-1. A file dialog opens — select your video file.
-2. The app displays the file's name, detected format, and **current frame rate**.
-3. Choose an output format from the menu (0–9), including option `0` to keep the original.
-4. Choose a target frame rate (0–5), including a custom FPS option.
-5. FFmpeg runs the conversion with the specified format and FPS settings.
-6. The converted file is saved to the `Converted Video/` folder, named as:
+1. Launch the application to open the Video Format Converter GUI.
+2. Click **Browse Video** and select your video file.
+3. The app displays the file's name, detected format, and **current frame rate**.
+4. Choose an output format from the dropdown menu, or select to keep the original.
+5. Choose a target frame rate from the dropdown menu, including a custom FPS option dynamically.
+6. Click **Convert Video**. A progress bar will appear while conversion runs in the background.
+7. A success popup appears when finished! The converted file is saved to the `Converted Video/` folder, named as:
    - `originalname_FORMAT_FPSfps.ext` (if FPS was changed)
    - `originalname_FORMAT.ext` (if original FPS was kept)
 
@@ -121,6 +126,12 @@ Video-Format-Converter/
 
 ## 📝 Changelog
 
+### v3.0.0
+- 🚀 Complete overhaul from CLI to a full **Modern GUI** using CustomTkinter
+- ⏳ Integrated background threading to prevent UI freezing during conversion
+- 🔄 Added an indeterminate progress bar mechanism
+- 📥 Replaced all CLI number prompts with dropdown menus and interactive buttons
+
 ### v2.0.0
 - ➕ Added real-time **frame rate detection** from video metadata
 - ➕ Added **frame rate selection menu** with presets (24, 30, 60, 120 fps)
@@ -145,11 +156,10 @@ Video-Format-Converter/
 
 ## 🔮 Future Improvements
 
-- Add a progress bar during conversion
 - Support batch conversion of multiple files at once
 - Allow custom output resolution or quality settings
 - Add audio-only extraction (MP3, AAC)
-- Build a full GUI to replace the CLI menu
+- Support percentage-based progress bar parsing FFmpeg stderr output
 
 ---
 
