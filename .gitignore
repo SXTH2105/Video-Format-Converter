@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# Large binaries (downloaded/extracted locally)
+ffmpeg.exe
+*.exe
+
+# Local video conversion output directory
+Converted Video/

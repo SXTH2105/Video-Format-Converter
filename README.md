@@ -2,17 +2,22 @@
 
 A Python desktop application that converts video files between popular formats **and lets you control the frame rate** — using a full graphical user interface (GUI) and FFmpeg under the hood. No command-line knowledge required.
 
+Available both as a Python script and as a **standalone Windows `.exe`** with zero external dependencies.
+
 ---
 
 ## 📋 Overview
 
-This tool lets you select any video file and convert it seamlessly via an interactive GUI built with CustomTkinter. The interface allows you to view the selected file's format and frame rate, choose a target format and FPS, then automatically convert and save the output to a dedicated `Converted Video/` folder. It uses `imageio_ffmpeg` to bundle FFmpeg, so no manual FFmpeg installation is needed.
+This tool lets you select any video file and convert it seamlessly via an interactive GUI built with CustomTkinter. The interface allows you to view the selected file's format and frame rate, choose a target format and FPS, then automatically convert and save the output.
+
+The project is fully configured for standalone distribution via **PyInstaller**: FFmpeg, CustomTkinter themes, and required dependencies are bundled directly into a single `.exe` file. Users can double-click and run the application without needing Python or FFmpeg installed.
 
 ---
 
 ## ✨ Features
 
 - 🖥️ **Full Modern GUI** — dark-mode ready graphical interface using CustomTkinter
+- 📦 **Standalone Windows Executable** — portable single-file `.exe` build with no Python or FFmpeg setup required
 - 🖱️ **File picker** — browse and select your video file visually
 - 🔍 **File analysis** — displays the selected file's name, format, and **detected frame rate** before converting
 - 🎞️ **Multiple output format options** across MP4, MOV, MKV, AVI, WMV, and FLV groups
@@ -20,8 +25,9 @@ This tool lets you select any video file and convert it seamlessly via an intera
 - 🎛️ **Frame rate control** — choose from presets (24, 30, 60, 120 fps) or enter a **custom FPS**
 - 🏷️ **Smart file naming** — output files are named as `originalname_FORMAT_FPSfps.ext`
 - ⏳ **Background processing** — UI remains fully responsive during video conversion with active progress feedback
-- 📂 **Auto-saves** converted files to a `Converted Video/` folder
-- ⚡ **Bundled FFmpeg** via `imageio_ffmpeg` — no external FFmpeg installation required
+- 🔇 **Zero Console Popups** — FFmpeg operations run completely silently in the background
+- ⚡ **Fail-Safe FFmpeg Resolution** — automatically finds FFmpeg in PyInstaller bundles (`_MEIPASS`), local folder, `imageio_ffmpeg`, or system `PATH`
+- 🎨 **Custom Icon Support** — seamlessly applies `.ico` icons to both the executable and window title bar
 
 ---
 
@@ -51,61 +57,102 @@ This tool lets you select any video file and convert it seamlessly via an intera
 ## 🛠️ Tech Stack
 
 - **Python 3**
-- **CustomTkinter** — for the modern GUI and window components
-- **Tkinter** — for the file picker dialog and message boxes
-- **imageio_ffmpeg** — for bundled FFmpeg binary
-- **threading** — to ensure UI responsivness during processing
-- **subprocess** — to run FFmpeg and detect frame rate from metadata
-- **re** — to parse FPS from FFmpeg's stderr output
-- **os** — for file path and directory management
+- **CustomTkinter** — modern GUI and dark-blue theme components
+- **Tkinter** — file dialogs and alert dialogs
+- **FFmpeg** — high-performance media transcoding and metadata probe
+- **imageio_ffmpeg** — automated FFmpeg binary distribution for Python environments
+- **PyInstaller** — standalone Windows `.exe` packaging
+- **threading** — background conversion worker preventing UI freeze
+- **subprocess** — hidden background FFmpeg process management (`CREATE_NO_WINDOW`)
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Run from Source)
 
-### Prerequisites
+### 1. Prerequisites
 
-Install the required libraries:
+Install the required Python packages:
 
 ```bash
-pip install imageio_ffmpeg customtkinter
+pip install customtkinter imageio_ffmpeg
 ```
 
-### Installation
-
-1. Clone the repository:
+### 2. Clone the Repository
 
 ```bash
 git clone https://github.com/SXTH2105/Video-Format-Converter.git
 cd Video-Format-Converter
 ```
 
-2. Run the script:
+### 3. Run the Application
 
 ```bash
-python Video_format_converter.py
+python main.py
 ```
+
+---
+
+## 📦 Building Standalone Windows Executable (.exe)
+
+You can package the application into a single `.exe` file that users can run by simply double-clicking—no Python or manual setup required.
+
+### 1. Install PyInstaller
+
+```powershell
+pip install pyinstaller
+```
+
+### 2. Prepare `ffmpeg.exe`
+
+Ensure `ffmpeg.exe` is in your project directory. If you have `imageio_ffmpeg` installed, copy the binary to your project folder with this one-liner:
+
+```powershell
+python -c "import imageio_ffmpeg, shutil; shutil.copy(imageio_ffmpeg.get_ffmpeg_exe(), 'ffmpeg.exe')"
+```
+
+### 3. Build the Executable
+
+**Without a custom icon:**
+
+```powershell
+pyinstaller --noconsole --onefile --collect-all customtkinter --add-binary "ffmpeg.exe;." --name "VideoConverter" main.py
+```
+
+**With a custom icon (`icon.ico`):**
+
+```powershell
+pyinstaller --noconsole --onefile --collect-all customtkinter --add-binary "ffmpeg.exe;." --add-data "icon.ico;." --icon="icon.ico" --name "VideoConverter" main.py
+```
+
+#### What these flags do:
+- `--noconsole`: Hides the background terminal window.
+- `--onefile`: Packages everything into a single standalone `.exe`.
+- `--collect-all customtkinter`: Includes all CustomTkinter theme JSON files, fonts, and assets.
+- `--add-binary "ffmpeg.exe;."`: Bundles FFmpeg into the application's runtime temporary directory (`sys._MEIPASS`).
+- `--icon="icon.ico"`: Embeds the icon into the executable for Windows File Explorer.
+- `--add-data "icon.ico;."`: Bundles the icon file so the GUI titlebar can display it.
+
+The resulting executable will be in the **`dist/`** directory (`dist/VideoConverter.exe`).
 
 ---
 
 ## 📖 How It Works
 
-1. Launch the application to open the Video Format Converter GUI.
+1. Launch the application or double-click `VideoConverter.exe`.
 2. Click **Browse Video** and select your video file.
-3. The app displays the file's name, detected format, and **current frame rate**.
+3. The app displays the file name, container format, and **detected frame rate**.
 4. Choose an output format from the dropdown menu, or select to keep the original.
-5. Choose a target frame rate from the dropdown menu, including a custom FPS option dynamically.
-6. Click **Convert Video**. A progress bar will appear while conversion runs in the background.
-7. A success popup appears when finished! The converted file is saved to the `Converted Video/` folder, named as:
-   - `originalname_FORMAT_FPSfps.ext` (if FPS was changed)
-   - `originalname_FORMAT.ext` (if original FPS was kept)
+5. Choose a target frame rate from presets or choose **Custom** to enter any numeric value.
+6. (Optional) Click **Select Output Folder** to specify where the converted file should be saved (defaults to the source video folder).
+7. Click **Convert Video**. An animated progress bar indicates active processing in a background worker thread.
+8. A success popup appears upon completion with the saved file path!
 
 ---
 
 ## 🗂️ Output Example
 
 ```
-Converted Video/
+Selected Folder/
 ├── myvideo_MP4_60fps.mp4
 ├── myvideo_MKV.mkv
 └── clip_AVI_30fps.avi
@@ -118,13 +165,27 @@ Converted Video/
 ```
 Video-Format-Converter/
 │
-├── Video_format_converter.py    # Main application file
-└── Converted Video/             # Output folder (auto-created)
+├── main.py                     # Main application source code
+├── ffmpeg.exe                  # Standalone FFmpeg binary for packaging
+├── icon.ico                    # Application icon (optional)
+├── dist/
+│   └── VideoConverter.exe      # Compiled standalone Windows executable
+├── build/                      # PyInstaller build artifacts
+├── README.md                   # Documentation
+└── .gitignore                  # Git ignore rules
 ```
 
 ---
 
 ## 📝 Changelog
+
+### v3.1.0
+- 📦 **Standalone Windows Executable**: Added full PyInstaller support with single-file bundling (`--onefile`, `--noconsole`).
+- ⚡ **Bundled FFmpeg Integration**: Added `sys._MEIPASS` runtime extraction and hierarchical binary lookup (bundle -> local -> imageio_ffmpeg -> system PATH).
+- 🔇 **Silent FFmpeg Execution**: Added `CREATE_NO_WINDOW` flag for subprocess calls to eliminate command prompt window popups on Windows.
+- 🎨 **Custom Icon Support**: Added automatic window titlebar and file icon embedding.
+- 🛡️ **Graceful Error Handling**: Improved error popups for missing dependencies and invalid custom framerates.
+- 💬 **Code Documentation**: Humanized codebase with thorough developer comments and docstrings.
 
 ### v3.0.0
 - 🚀 Complete overhaul from CLI to a full **Modern GUI** using CustomTkinter
@@ -147,19 +208,9 @@ Video-Format-Converter/
 
 ## ⚠️ Notes
 
-- The `Converted Video/` folder is created automatically if it doesn't exist.
-- Conversion time depends on the size, format, and frame rate of the input video.
-- Frame rate is detected by parsing FFmpeg's stderr metadata output using regex.
-- If `imageio_ffmpeg` is not installed, the program will exit with an installation prompt.
-
----
-
-## 🔮 Future Improvements
-
-- Support batch conversion of multiple files at once
-- Allow custom output resolution or quality settings
-- Add audio-only extraction (MP3, AAC)
-- Support percentage-based progress bar parsing FFmpeg stderr output
+- The target output folder is created automatically if it doesn't exist.
+- Conversion speed depends on hardware specifications, input video resolution, and chosen codecs.
+- Frame rate is probed non-destructively by parsing FFmpeg stderr output.
 
 ---
 
